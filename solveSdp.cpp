@@ -4,8 +4,8 @@
 #include <sdpa_call.h>
 #include <chrono>
 
-#define DIMENSION 35
-#define BLOCK_SIZE 11
+#define DIMENSION 14
+#define BLOCK_SIZE 6
 
 using std::cout;
 using std::endl;
@@ -261,76 +261,70 @@ void putCoefficients(SDPA &problem, const std::vector<double> &coef) {
 }
 
 void buildMat(SDPA &problem) {
-    problem.inputElement(0, 1, 1, 1, 1);
-    problem.inputElement(1, 1, 1, 1, -1);
-    problem.inputElement(1, 1, 11, 11, -1);
-    problem.inputElement(2, 1, 11, 10, -1);
-    problem.inputElement(3, 1, 1, 1, -2);
-    problem.inputElement(3, 1, 10, 10, -1);
-    problem.inputElement(3, 1, 11, 9, -1);
-    problem.inputElement(4, 1, 10, 9, -1);
-    problem.inputElement(5, 1, 1, 1, -1);
-    problem.inputElement(5, 1, 9, 9, -1);
-    problem.inputElement(6, 1, 11, 8, -1);
-    problem.inputElement(7, 1, 10, 8, -1);
-    problem.inputElement(7, 1, 11, 7, -1);
-    problem.inputElement(8, 1, 9, 8, -1);
-    problem.inputElement(8, 1, 10, 7, -1);
-    problem.inputElement(9, 1, 9, 7, -1);
-    problem.inputElement(10, 1, 1, 1, -2);
-    problem.inputElement(10, 1, 8, 8, -1);
-    problem.inputElement(10, 1, 11, 6, -1);
-    problem.inputElement(11, 1, 8, 7, -1);
-    problem.inputElement(11, 1, 10, 6, -1);
-    problem.inputElement(12, 1, 1, 1, -2);
-    problem.inputElement(12, 1, 7, 7, -1);
-    problem.inputElement(12, 1, 9, 6, -1);
-    problem.inputElement(13, 1, 8, 6, -1);
-    problem.inputElement(14, 1, 7, 6, -1);
-    problem.inputElement(15, 1, 1, 1, -1);
-    problem.inputElement(15, 1, 6, 6, -1);
-    problem.inputElement(16, 1, 11, 5, -1);
-    problem.inputElement(17, 1, 10, 5, -1);
-    problem.inputElement(17, 1, 11, 4, -1);
-    problem.inputElement(18, 1, 9, 5, -1);
-    problem.inputElement(18, 1, 10, 4, -1);
-    problem.inputElement(19, 1, 9, 4, -1);
-    problem.inputElement(20, 1, 8, 5, -1);
-    problem.inputElement(20, 1, 11, 3, -1);
-    problem.inputElement(21, 1, 7, 5, -1);
-    problem.inputElement(21, 1, 8, 4, -1);
-    problem.inputElement(21, 1, 10, 3, -1);
-    problem.inputElement(22, 1, 7, 4, -1);
-    problem.inputElement(22, 1, 9, 3, -1);
-    problem.inputElement(23, 1, 6, 5, -1);
-    problem.inputElement(23, 1, 8, 3, -1);
-    problem.inputElement(24, 1, 6, 4, -1);
-    problem.inputElement(24, 1, 7, 3, -1);
-    problem.inputElement(25, 1, 6, 3, -1);
-    problem.inputElement(26, 1, 1, 1, -2);
-    problem.inputElement(26, 1, 5, 5, -1);
-    problem.inputElement(26, 1, 11, 2, -1);
-    problem.inputElement(27, 1, 5, 4, -1);
-    problem.inputElement(27, 1, 10, 2, -1);
-    problem.inputElement(28, 1, 1, 1, -2);
-    problem.inputElement(28, 1, 4, 4, -1);
-    problem.inputElement(28, 1, 9, 2, -1);
-    problem.inputElement(29, 1, 5, 3, -1);
-    problem.inputElement(29, 1, 8, 2, -1);
-    problem.inputElement(30, 1, 4, 3, -1);
-    problem.inputElement(30, 1, 7, 2, -1);
-    problem.inputElement(31, 1, 1, 1, -2);
-    problem.inputElement(31, 1, 3, 3, -1);
-    problem.inputElement(31, 1, 6, 2, -1);
-    problem.inputElement(32, 1, 5, 2, -1);
-    problem.inputElement(33, 1, 4, 2, -1);
-    problem.inputElement(34, 1, 3, 2, -1);
-    problem.inputElement(35, 1, 1, 1, -1);
-    problem.inputElement(35, 1, 2, 2, -1);
+    problem.inputElement(0,1,1,1,-1);
+    problem.inputElement(1,1,6,6,-1);
+    problem.inputElement(1,1,1,1,1);
+    problem.inputElement(2,1,6,5,-1);
+    problem.inputElement(3,1,6,4,-1);
+    problem.inputElement(3,1,5,5,-1);
+    problem.inputElement(3,1,1,1,2);
+    problem.inputElement(4,1,5,4,-1);
+    problem.inputElement(5,1,4,4,-1);
+    problem.inputElement(5,1,1,1,1);
+    problem.inputElement(6,1,6,3,-1);
+    problem.inputElement(7,1,6,2,-1);
+    problem.inputElement(7,1,5,3,-1);
+    problem.inputElement(8,1,5,2,-1);
+    problem.inputElement(8,1,4,3,-1);
+    problem.inputElement(9,1,4,2,-1);
+    problem.inputElement(10,1,6,1,-1);
+    problem.inputElement(10,1,3,3,-1);
+    problem.inputElement(10,1,1,1,2);
+    problem.inputElement(11,1,5,1,-1);
+    problem.inputElement(11,1,3,2,-1);
+    problem.inputElement(12,1,4,1,-1);
+    problem.inputElement(12,1,2,2,-1);
+    problem.inputElement(12,1,1,1,2);
+    problem.inputElement(13,1,3,1,-1);
+    problem.inputElement(14,1,2,1,-1);
 }
 
 void printVector(const double *coefficients, int dimension) {
     for (int i = 0; i < dimension; ++i) {
         fprintf(stdout, "y%d = %.17g\n", i + 1, coefficients[i]);
     }
+}
+
+std::vector<double> extractSmallProblem(const std::vector<double> &coef, double b){
+    double b400 = coef[34];
+    double b310 = coef[33];
+    double b301 = coef[32]/sqrt(b*b+1.0)+coef[31]*b/sqrt(b*b+1.0);
+    double b220 = coef[30];
+    double b211 = coef[29]/sqrt(b*b+1.0)+coef[28]*b/sqrt(b*b+1.0);
+    double b202 = coef[27]/(b*b+1.0)+coef[26]/(b*b+1.0)*b+coef[25]*b*b/(b*b+1.0);
+    double b130 = coef[24];
+    double b121 = coef[23]/sqrt(b*b+1.0)+coef[22]*b/sqrt(b*b+1.0);
+    double b112 = coef[21]/(b*b+1.0)+coef[19]*b*b/(b*b+1.0)+coef[20]/(b*b+1.0)*b;
+    double b103 = coef[18]/sqrt(pow(b*b+1.0,3.0))+coef[17]/sqrt(pow(b*b+1.0,3.0))*b+coef[16]/sqrt(pow(b*b+1.0,3.0))*b*b+coef[15]*b*b*b/sqrt(pow(b*b+1.0,3.0));
+    double b040 = coef[14];
+    double b031 = coef[13]/sqrt(b*b+1.0)+coef[12]*b/sqrt(b*b+1.0);
+    double b022 = coef[11]/(b*b+1.0)+coef[10]/(b*b+1.0)*b+coef[9]*b*b/(b*b+1.0);
+    double b013 = coef[8]/sqrt(pow(b*b+1.0,3.0))+coef[6]/sqrt(pow(b*b+1.0,3.0))*b*b+coef[7]/sqrt(pow(b*b+1.0,3.0))*b+coef[5]*b*b*b/sqrt(pow(b*b+1.0,3.0));
+    double b004 = coef[1]/pow(b*b+1.0,2.0)*b*b*b+coef[2]/pow(b*b+1.0,2.0)*b*b+coef[3]/pow(b*b+1.0,2.0)*b+coef[0]*b*b*b*b/pow(b*b+1.0,2.0)+coef[4]/pow(b*b+1.0,2.0);
+
+    return {-b004 + b400,
+            -b013,
+            -b022 + 2*b400,
+            -b031,
+            -b040 + b400,
+            -b103,
+            -b112,
+            -b121,
+            -b130,
+            -b202 + 2*b400,
+            -b211,
+            -b220 + 2*b400,
+            -b301,
+            -b310
+    };
 }

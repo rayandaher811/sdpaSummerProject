@@ -14,7 +14,7 @@ void printVector(const double *coefficients, int dimension);
 
 void buildMat(SDPA &problem);
 
-void runProblem(SDPA &problem, double offset, double *yMat, double *xMat, double *xVec, bool copyToInitialPoint,
+void runProblem(SDPA &problem, double offset, double *yMat, double *xMat, double *xVec,
                 std::vector<double> &coef);
 
 void putCoefficients(SDPA &problem, const std::vector<double> &coef);
@@ -22,7 +22,6 @@ void putCoefficients(SDPA &problem, const std::vector<double> &coef);
 void setInitialPoint(SDPA &problem, int dim, int blockSize, double *yMat, double *xMat, double *xVec);
 
 std::vector<double> extractSmallProblem(const std::vector<double> &coef, double b);
-
 int main() {
     // initialize general variables
     auto start_overall = chrono::steady_clock::now();
@@ -33,7 +32,7 @@ int main() {
     std::vector<std::vector<double>> coefVectors =
             {
                 {
-                        0.7739754000, -0.4607657000, 0.7262255000, 0.2417991000, 0.8217785000, -0.2861407000, 0.1378471000, 0.1873807000, 0.2716400000, 0.9810004000, -0.5863106000, 1.020847450, 0.2138725000, 0.06236740000, 0.9385016500, 0.04550430000, -0.4071891000, 0.1365847000, 0.05756750000, -0.5618737000, -0.2161587000, 0.1953773000, -0.5688474000, -0.04414210000, 0.3536658000, 0.8546904500, -0.3303616000, 0.9372889000, 0.1940359000, 0.4774460000, 1.467044000, -0.04947000000, 0.2098904000, -0.1627388000, 0.8149880500
+                        0.8267088500, -0.03762930000, 1.148176250, 0.3280084000, 0.7279020500, -0.2969960000, -0.4217697000, -0.2741615000, -0.01951170000, 0.4880662500, -0.3687674000, 0.7530890500, 0.3540255000, -0.2344946000, 0.7331724500, 0.1567501000, -0.07656680000, -0.08375230000, -0.5491424000, -0.5935686000, 0.3219790000, 0.4282622000, -0.3411265000, -0.1592065000, 0.1864248000, 0.9071691500, -0.04976520000, 0.7128398500, 1.009891000, -0.2623729000, 0.8567707500, 0.04297800000, -0.06063250000, -0.09147550000, 0.7973897000
                 }
             };
 
@@ -53,7 +52,11 @@ int main() {
         double minDual = 300000000;
         double maxDual = -300000000;
 
-        for (double b = -100; b <= 100; b+=0.01) {
+        for (double b = -1; b <= 1; b+=0.01) {
+
+            // run SPDA and measure time
+            auto startCoefPrep = chrono::steady_clock::now();
+
             // Init problem
             SDPA sdpaProblem;
             sdpaProblem.setParameterType(SDPA::PARAMETER_DEFAULT);
@@ -62,29 +65,15 @@ int main() {
             sdpaProblem.inputBlockSize(1, BLOCK_SIZE);
             sdpaProblem.inputBlockType(1, SDPA::SDP);
             sdpaProblem.initializeUpperTriangleSpace();
-            bool initialPointEnabled = false;
+            buildMat(sdpaProblem);
 
-            // set initial point if not first iteration
-            if (initialPointEnabled && iteration > 0) {
-                sdpaProblem.setInitPoint(true);
-                setInitialPoint(sdpaProblem, DIMENSION, BLOCK_SIZE, yMat, xMat, xVec);
-            }
+            std::cout << "Current b value: " << b << std::endl;
 
-            // choose whether the current SDPA problem should set its result as the initial point for the following problems
-            bool copyToInitialPoint = false;
-            if (initialPointEnabled && iteration % 3 == 0) {
-                copyToInitialPoint = true;
-            }
-
-
-            // run SPDA and measure time
-
-            auto startCoefPrep = chrono::steady_clock::now();
             std:: vector<double> smallerProblem = extractSmallProblem(coefVectors[0], b);
             auto endCoefPrep = chrono::steady_clock::now();
 
             auto start = chrono::steady_clock::now();
-            runProblem(sdpaProblem, 0, yMat, xMat, xVec, copyToInitialPoint, smallerProblem);
+            runProblem(sdpaProblem, 0, yMat, xMat, xVec, smallerProblem);
             auto end = chrono::steady_clock::now();
 
             sum += chrono::duration_cast<chrono::nanoseconds>(end - start).count();
@@ -98,6 +87,7 @@ int main() {
                 minDual = sdpaProblem.getDualObj();
             if(maxDual < sdpaProblem.getDualObj())
                 maxDual = sdpaProblem.getDualObj();
+
         }
 
         std::cout << "Real minimum: " << minPrimal + coefVectors[0][34] << std::endl;
@@ -116,6 +106,7 @@ int main() {
     std::cout << "total time (seconds): " << chrono::duration_cast<chrono::seconds>(end_overall - start_overall).count()
               << std::endl;
     std::cout << "finished after " << iteration << " iterations" << std::endl;
+
     exit(0);
 }
 
@@ -131,30 +122,23 @@ void runProblem(SDPA &sdpaProblem,
                 double *yMat,
                 double *xMat,
                 double *xVec,
-                bool copyToInitialPoint,
                 std::vector<double> &coef) {
 
     /* uncomment to display info on each SDPA run */
     //sdpaProblem.setDisplay(stdout);
 
     putCoefficients(sdpaProblem, coef);
-    buildMat(sdpaProblem);
+
 
     sdpaProblem.initializeUpperTriangle();
     sdpaProblem.initializeSolve();
     sdpaProblem.solve();
 
-    int matSize = BLOCK_SIZE * BLOCK_SIZE;
-    if (copyToInitialPoint) {
-        std::memcpy(yMat, sdpaProblem.getResultYMat(1), matSize * sizeof(double));
-        std::memcpy(xMat, sdpaProblem.getResultXMat(1), matSize * sizeof(double));
-        std::memcpy(xVec, sdpaProblem.getResultXVec(), DIMENSION * sizeof(double));
-    }
-
     fprintf(stdout, "primal value: %3.10e\n", sdpaProblem.getPrimalObj());
     fprintf(stdout, "dual value: %3.10e\n", sdpaProblem.getDualObj());
     fprintf(stdout, "time (millis) : %f\n", sdpaProblem.getSolveTime() * 1000);
     fprintf(stdout, "iterations : %d\n", sdpaProblem.getIteration());
+
 
     sdpaProblem.terminate();
 }

@@ -27,6 +27,9 @@ int main() {
     auto start_overall = chrono::steady_clock::now();
     long sum = 0;
     long sumCoefPrep = 0;
+    auto startProblemSolving = chrono::steady_clock::now();
+    auto endProblemSolving = chrono::steady_clock::now();
+
 
     // initial inputs
     std::vector<std::vector<double>> coefVectors =
@@ -42,7 +45,11 @@ int main() {
     double *xVec = new double[DIMENSION];
 
     int iterations =  1;
+    double bStart = -2;
+    double bEnd = 2;
+    double bJumps = 0.01;
     int iteration;
+
     for (iteration = 0; iteration < iterations; ++iteration) {
 
         std::cout << "Iteration number: " << iteration + 1 << std::endl;
@@ -51,8 +58,9 @@ int main() {
         double maxPrimal = -300000000;
         double minDual = 300000000;
         double maxDual = -300000000;
+        startProblemSolving = chrono::steady_clock::now();
 
-        for (double b = -1; b <= 1; b+=0.01) {
+        for (double b = bStart; b <= bEnd; b+=bJumps) {
 
             // run SPDA and measure time
             auto startCoefPrep = chrono::steady_clock::now();
@@ -90,6 +98,8 @@ int main() {
 
         }
 
+        endProblemSolving = chrono::steady_clock::now();
+
         std::cout << "Real minimum: " << minPrimal + coefVectors[0][34] << std::endl;
         std::cout << "min primal: " << minPrimal << std::endl;
         std::cout << "max primal: " << maxPrimal << std::endl;
@@ -99,10 +109,13 @@ int main() {
 
     // print final statistics
     auto end_overall = chrono::steady_clock::now();
-    std::cout << "average sdpa solving time (nanos): " << sum / iterations << std::endl;
-    std::cout << "average coef preparation time (nanos): " << sumCoefPrep / iterations << std::endl;
-    std::cout << "average problem solving time (nanos): " << (sum + sumCoefPrep) / iterations << std::endl;
-    std::cout << "Total problems solving time (nanos): " << sum<< std::endl;
+    auto problemsSolvingDuration = chrono::duration_cast<chrono::nanoseconds>(endProblemSolving - startProblemSolving).count();
+    auto smallProblemsSolvedAmount = (bEnd - bStart) * iterations / bJumps;
+
+    std::cout << "average sdpa solving time (nanos): " << sum / smallProblemsSolvedAmount << std::endl;
+    std::cout << "average coef preparation time (nanos): " << sumCoefPrep / smallProblemsSolvedAmount << std::endl;
+    std::cout << "average small problem solving time (nanos): " << (sum + sumCoefPrep) /  smallProblemsSolvedAmount<< std::endl;
+    std::cout << "average big problem solving time (nanos): " << problemsSolvingDuration / iterations << std::endl;
     std::cout << "total time (seconds): " << chrono::duration_cast<chrono::seconds>(end_overall - start_overall).count()
               << std::endl;
     std::cout << "finished after " << iteration << " iterations" << std::endl;
@@ -123,12 +136,10 @@ void runProblem(SDPA &sdpaProblem,
                 double *xMat,
                 double *xVec,
                 std::vector<double> &coef) {
-
     /* uncomment to display info on each SDPA run */
     //sdpaProblem.setDisplay(stdout);
 
     putCoefficients(sdpaProblem, coef);
-
 
     sdpaProblem.initializeUpperTriangle();
     sdpaProblem.initializeSolve();

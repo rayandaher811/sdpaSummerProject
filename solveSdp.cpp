@@ -34,10 +34,10 @@ double *xVec = new double[DIMENSION];
 // b configs
 double bSTART = -2;
 double bEND = 2;
-double bJUMPS = 0.01;
+double bJUMPS = 0.1;
 
 // Threads count
-int threadAmount =4;
+int threadAmount =1;
 
 // Time measurements sums
 long sum = 0;
@@ -79,13 +79,11 @@ int main() {
             threadsCreated++;
             allThreads.push_back(std::async(runProblemsRange, start, start + bThreadJumps, iteration));
         }
-        std::cout << "Threads created: " << threadsCreated << std::endl;
 
         std::cout << "Threads done: " << std::endl;
-        for(auto &thread: allThreads) {
-            if(thread.get() < minPrimal)
-                minPrimal = thread.get();
-        }
+        std::cout << "Threads created: " << threadsCreated << std::endl;
+
+        minPrimal = allThreads[0].get();
 
         endProblemSolving = chrono::steady_clock::now();
 
@@ -135,7 +133,7 @@ void runProblem(SDPA &sdpaProblem,
 
 //    fprintf(stdout, "primal value: %3.10e\n", sdpaProblem.getPrimalObj());
 //    fprintf(stdout, "dual value: %3.10e\n", sdpaProblem.getDualObj());
-//    fprintf(stdout, "time (millis) : %f\n", sdpaProblem.getSolveTime() * 1000);
+    fprintf(stdout, "time (millis) : %f\n", sdpaProblem.getSolveTime() * 1000);
 
 
     sdpaProblem.terminate();

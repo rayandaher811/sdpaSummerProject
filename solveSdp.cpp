@@ -4,8 +4,8 @@
 #include <sdpa_call.h>
 #include <chrono>
 
-#define DIMENSION 35
-#define BLOCK_SIZE 11
+#define DIMENSION 34
+#define BLOCK_SIZE 10
 
 using std::cout;
 using std::endl;
@@ -14,12 +14,12 @@ void printVector(const double *coefficients, int dimension);
 
 void buildMat(SDPA &problem);
 
-void runProblem(SDPA &problem, double offset, double *yMat, double *xMat, double *xVec, bool copyToInitialPoint,
-                std::vector<double> &coef);
+void runProblem(SDPA &problem, std::vector<double> &coef);
 
 void putCoefficients(SDPA &problem, const std::vector<double> &coef);
 
-void setInitialPoint(SDPA &problem, int dim, int blockSize, double *yMat, double *xMat, double *xVec);
+void setInitialPoint(SDPA &problem, int dim, int blockSize, double yMat[BLOCK_SIZE][BLOCK_SIZE], double xMat[BLOCK_SIZE][BLOCK_SIZE], double xVec[DIMENSION]);
+int i = 0;
 
 int main() {
     // initialize general variables
@@ -29,124 +29,33 @@ int main() {
     // initial inputs
     std::vector<std::vector<double>> coefVectors =
             {
-                    {
-                            -35.72303600, 2.895776000, -28.68785800, 9.272296000,
-                            -39.41445700, -6.033732000, -1.080024000, 14.36109200,
-                            3.748776000, -45.12376200, 3.010502000, -29.94402400,
-                            0.7073560000, -4.064496000, -37.22224400, -0.5941640000,
-                            -2.382526000, -6.699726000, -2.168924000, -4.103466000,
-                            -3.166836000, -28.99672000, 18.84646400, -5.931412000,
-                            0.07014600000, -39.97219400, 11.52328000, -22.74463400,
-                            -7.755768000, -2.999454000, -27.97190500, -6.329940000,
-                            0.5362840000, 8.421070000, -35.47082700
-                    },
-                    {
-                            -35.72307200, 2.895530600, -28.68831100, 9.272177390,
-                            -39.41446540, -6.033316800, -1.078391660, 14.36203297,
-                            3.748880980, -45.12544335, 3.007599165, -29.94458565,
-                            0.7101482200, -4.063035330, -37.22387212, -0.5937446000,
-                            -2.380812145, -6.698553960, -2.168786540, -4.105331940,
-                            -3.167857785, -28.99731085, 18.84609780, -5.931166420,
-                            0.07386223500, -39.97308190, 11.52276039, -22.74503445,
-                            -7.760910655, -3.002643130, -27.97178215, -6.331883220,
-                            0.5349662800, 8.418509620, -35.47159985
-                    },
-                    {
-                            -35.72479010, 2.892915105, -28.69027632, 9.271439120,
-                            -39.41460230, -6.032504380, -1.074855200, 14.36448341,
-                            3.749704660, -45.12830825, 3.004801705, -29.94660625,
-                            0.7108028600, -4.060683970, -37.22498768, -0.5902669450,
-                            -2.374534080, -6.694808550, -2.167761620, -4.105627745,
-                            -3.171268860, -29.00024578, 18.84877560, -5.928687620,
-                            0.07428641500, -39.97390492, 11.51979860, -22.74668847,
-                            -7.761664900, -3.003994910, -27.97106762, -6.332831290,
-                            0.5339764000, 8.418366110, -35.47172752
-                    },
-                    {
-                            -35.72511410, 2.892902505, -28.69040245, 9.271436670,
-                            -39.41461455, -6.030785380, -1.076580375, 14.36478346,
-                            3.749362710, -45.13125792, 3.009453860, -29.94912275,
-                            0.7125791600, -4.062501190, -37.22533365, -0.5908627450,
-                            -2.372779865, -6.694890065, -2.167418270, -4.102333620,
-                            -3.177536750, -28.99512040, 18.84361414, -5.922212440,
-                            0.07605713500, -39.97555222, 11.52139545, -22.74936142,
-                            -7.756446015, -3.012391725, -27.97475255, -6.334094053,
-                            0.5377189150, 8.421997990, -35.47318295
-                    },
-                    {
-                            -35.72580842, 2.893329375, -28.68807812, 9.270702000,
-                            -39.41667118, -6.029720840, -1.077824595, 14.36323320,
-                            3.750940890, -45.13375552, 3.010799150, -29.94582925,
-                            0.7141810200, -4.063881010, -37.22690575, -0.5918456000,
-                            -2.373834760, -6.692781360, -2.165082745, -4.104109760,
-                            -3.176367870, -28.99166290, 18.84407440, -5.925924815,
-                            0.07225073500, -39.97751795, 11.52093232, -22.74723999,
-                            -7.756996135, -3.015932085, -27.97949108, -6.335239167,
-                            0.5361378650, 8.419050790, -35.47412545
-                    },
-                    {
-                            -35.72766602, 2.892226015, -28.68824628, 9.270700720,
-                            -39.41667118, -6.030130290, -1.074446475, 14.36427208,
-                            3.750944950, -45.13729072, 3.010141650, -29.94748170,
-                            0.7137938950, -4.060572110, -37.22856632, -0.5901431500,
-                            -2.371695670, -6.692294265, -2.165080850, -4.107641665,
-                            -3.178896185, -28.99320596, 18.84527410, -5.920876610,
-                            0.06873401000, -39.98193355, 11.51898828, -22.74760376,
-                            -7.755735360, -3.010504660, -27.98515905, -6.333394513,
-                            0.5379077950, 8.415020580, -35.47630632
-                    },
-                    {
-                            -35.72768125, 2.891976025, -28.68911085, 9.272037207,
-                            -39.41710590, -6.030451650, -1.077465305, 14.36288448,
-                            3.752965313, -45.13879318, 3.007751870, -29.95087160,
-                            0.7158538950, -4.058149610, -37.22919132, -0.5902605400,
-                            -2.372381915, -6.689378310, -2.166569540, -4.108525325,
-                            -3.174483480, -28.99165232, 18.84979228, -5.918233280,
-                            0.06644901000, -39.98194750, 11.52180958, -22.75001458,
-                            -7.752114390, -3.011127115, -27.98861002, -6.332574290,
-                            0.5359621450, 8.412529930, -35.47704890
-                    },
-                    {
-                            -35.72818750, 2.891636275, -28.68940860, 9.271956420,
-                            -39.41713450, -6.028449150, -1.077576355, 14.36309789,
-                            3.752779133, -45.14163292, 3.009012060, -29.95137872,
-                            0.7175537950, -4.058814290, -37.22955612, -0.5904000400,
-                            -2.370358725, -6.688716880, -2.166077340, -4.110125925,
-                            -3.179315030, -28.99049771, 18.85338516, -5.917927240,
-                            0.06485607000, -39.98071735, 11.52251078, -22.75183580,
-                            -7.754824880, -3.006331975, -27.98929650, -6.332403480,
-                            0.5334275450, 8.414827600, -35.47780790
-                    },
-                    {
-                            -35.72821720, 2.891827025, -28.68923142, 9.270404170,
-                            -39.41910142, -6.028036587, -1.078607350, 14.35879734,
-                            3.750388670, -45.14257560, 3.005398695, -29.95609210,
-                            0.7141510800, -4.061237093, -37.23157662, -0.5901466150,
-                            -2.370771900, -6.692065405, -2.169337065, -4.111996585,
-                            -3.182994930, -28.99157823, 18.85206334, -5.920683980,
-                            0.06576855500, -39.98147482, 11.52149840, -22.75142123,
-                            -7.752846475, -3.004513340, -27.98761052, -6.331478130,
-                            0.5348901950, 8.414423630, -35.47820390
-                    },
-                    {
-                            -35.73033780, 2.892177005, -28.68771240, 9.270277630,
-                            -39.41937865, -6.024324953, -1.081105610, 14.35763623,
-                            3.751181210, -45.14434705, 3.007329135, -29.95660525,
-                            0.7142800400, -4.061313253, -37.23157920, -0.5902018750,
-                            -2.371011405, -6.692025285, -2.169248820, -4.114043500,
-                            -3.182637000, -28.99094680, 18.85389507, -5.921775360,
-                            0.06569575500, -39.97817800, 11.52122314, -22.75262039,
-                            -7.755759255, -3.002929835, -27.98801352, -6.331435170,
-                            0.5350799350, 8.416052530, -35.47948555
-                    }
+                    {0.1487731000, 0.007404400000, 1.291135200, -0.05259190000, 0.3300128000, -0.05955900000, -0.2089143000, 0.4441555000, 0.2854625000, 0.9635312000, -0.7013847000, 0.772196000, 0.1052276000, 0.1593876000, 0.0317093500, -0.1466180000, -0.09105170000, 0.2566314000, 0.06830060000, -0.2846121000, 0.06115390000, 0.6638104000, 0.2830806000, 0.7631010000, 0.07735970000, 1.043273850, 0.4710202000, 1.168491000, -0.1290381000, -0.8049054000, 1.090042500, 0.05250310000, 0.1969399000, 0.3315520000}
             };
 
     // current initial point
-    double *yMat = new double[BLOCK_SIZE * BLOCK_SIZE];
-    double *xMat = new double[BLOCK_SIZE * BLOCK_SIZE];
-    double *xVec = new double[DIMENSION];
+    double xMat[BLOCK_SIZE][BLOCK_SIZE] = { {+6.3932582153893511e-02,-6.3803571001887095e-03,-5.6887590186935960e-03,+4.5038767512170178e-03,+6.2807030341918216e-02,-2.3688146692632185e-03,+2.4012254290552864e-03,+5.8920728079351857e-02,-1.2673207184824241e-03,+5.5755975011998929e-02 },
+                      {-6.3803571001887095e-03,+6.2807030341918230e-02,-2.3688146692632185e-03,+2.4012254290552864e-03,-1.3870492761470832e-04,+9.7083572080443163e-04,+2.2848078339443834e-03,-2.5100248920644883e-03,+7.1635874364571928e-04,-1.6616456312189797e-03 },
+                      {-5.6887590186935960e-03,-2.3688146692632185e-03,+5.8920728079351857e-02,-1.2673207184824241e-03,+9.7083572080443163e-04,-2.5100248920644883e-03,+7.1635874364571928e-04,-3.1398297840381515e-03,+1.4781821789800194e-03,-1.1801586088156569e-03 },
+                      {+4.5038767512170178e-03,+2.4012254290552864e-03,-1.2673207184824241e-03,+5.5755975011998929e-02,+2.2848078339443834e-03,+7.1635874364571928e-04,-1.6616456312189797e-03,+1.4781821789800194e-03,-1.1801586088156569e-03,+1.8096091283639408e-03 },
+                      {+6.2807030341918216e-02,-1.3870492761470832e-04,+9.7083572080443163e-04,+2.2848078339443834e-03,+7.6234433606577293e-02,+1.9143442623144337e-03,+8.8266839809531504e-03,+6.2246449661917794e-02,-9.7959211703423912e-04,+6.1161650485366724e-02 },
+                      {-2.3688146692632185e-03,+9.7083572080443163e-04,-2.5100248920644883e-03,+7.1635874364571928e-04,+1.9143442623144337e-03,+6.2246449661917780e-02,-9.7959211703423912e-04,+4.7028163872208494e-03,+3.9427367127197943e-03,-2.2260589605623812e-04 },
+                      {+2.4012254290552864e-03,+2.2848078339443834e-03,+7.1635874364571928e-04,-1.6616456312189797e-03,+8.8266839809531504e-03,-9.7959211703423912e-04,+6.1161650485366724e-02,+3.9427367127197943e-03,-2.2260589605623812e-04,+3.5572774920061140e-03 },
+                      {+5.8920728079351857e-02,-2.5100248920644883e-03,-3.1398297840381515e-03,+1.4781821789800194e-03,+6.2246449661917794e-02,+4.7028163872208494e-03,+3.9427367127197943e-03,+7.1856523845314990e-02,-9.9215834773707431e-04,+5.9684449092670434e-02 },
+                      {-1.2673207184824241e-03,+7.1635874364571928e-04,+1.4781821789800194e-03,-1.1801586088156569e-03,-9.7959211703423912e-04,+3.9427367127197943e-03,-2.2260589605623812e-04,-9.9215834773707431e-04,+5.9684449092670427e-02,+6.1373931857342995e-05 },
+                      {+5.5755975011998929e-02,-1.6616456312189797e-03,-1.1801586088156569e-03,+1.8096091283639408e-03,+6.1161650485366724e-02,-2.2260589605623812e-04,+3.5572774920061140e-03,+5.9684449092670434e-02,+6.1373931857342995e-05,+6.6823895047766299e-02 }   };
+    double yMat[BLOCK_SIZE][BLOCK_SIZE] =    { {+4.7213044902544632e-01,+3.3129602499999945e-02,+3.1726846250000003e-02,-2.0417685000000012e-02,-1.4610003815626954e-01,+2.6642788454662905e-02,+1.0768488265778269e-02,-1.2536758581991936e-01,+3.2697544636972162e-03,-1.1220851875341209e-01 },
+                                               {+3.3129602499999945e-02,+3.0190449836343181e-01,+1.7532702795337109e-02,-1.9911180765778261e-02,-1.5424043749999991e-02,-4.0308748032090638e-03,-1.5861388862907860e-02,+2.6582669339250491e-03,-5.2953206457819020e-03,-3.5284605772610165e-03 },
+                                               {+3.1726846250000003e-02,+1.7532702795337109e-02,+3.2449666169073099e-01,+8.1888217863027944e-03,-2.3547636446790927e-02,+1.8952053066074941e-02,-4.3546349337745174e-03,+8.2474737499999857e-03,-1.1731204789550340e-02,-4.0887120100924872e-03 },
+                                               {-2.0417685000000012e-02,-1.9911180765778261e-02,+8.1888217863027944e-03,+3.4275971355771695e-01,-1.5324298870921561e-03,-6.1818894204435700e-03,+1.3206596827261011e-02,+4.9311247895503282e-03,+8.5561907600925080e-03,+1.4754037500000093e-03 },
+                                               {-1.4610003815626954e-01,-1.5424043749999991e-02,-2.3547636446790927e-02,-1.5324298870921561e-03,+4.3309685322544644e-01,-9.3605487499999942e-03,-3.5530583749999997e-02,-1.1226098783556365e-01,+3.0774264820862228e-03,-1.2102330550014748e-01 },
+                                               {+2.6642788454662905e-02,-4.0308748032090638e-03,+1.8952053066074941e-02,-6.1818894204435700e-03,-9.3605487499999942e-03,+2.9962194072202042e-01,+7.7912960179137899e-03,-2.7825338750000005e-02,-2.8667547304239000e-02,+7.9778722439694562e-03 },
+                                               {+1.0768488265778269e-02,-1.5861388862907860e-02,-4.3546349337745174e-03,+1.3206596827261011e-02,-3.5530583749999997e-02,+7.7912960179137899e-03,+3.0900895305118770e-01,-2.3799164457610220e-03,+1.4532540060305393e-03,+1.7228512500000073e-03 },
+                                               {-1.2536758581991936e-01,+2.6582669339250491e-03,+8.2474737499999857e-03,+4.9311247895503282e-03,-1.1226098783556365e-01,-2.7825338750000005e-02,-2.3799164457610220e-03,+4.3294656072544613e-01,+3.4795575000000005e-03,-1.2589008823944761e-01 },
+                                               {+3.2697544636972162e-03,-5.2953206457819020e-03,-1.1731204789550340e-02,+8.5561907600925080e-03,+3.0774264820862228e-03,-2.8667547304239000e-02,+1.4532540060305393e-03,+3.4795575000000005e-03,+3.1926256852978829e-01,-5.2922024999999999e-03 },
+                                               {-1.1220851875341209e-01,-3.5284605772610165e-03,-4.0887120100924872e-03,+1.4754037500000093e-03,-1.2102330550014748e-01,+7.9778722439694562e-03,+1.7228512500000073e-03,-1.2589008823944761e-01,-5.2922024999999999e-03,+4.4294495822544633e-01 }   };
+    double xVec[] = {-6.6823895047766299e-02,-6.1373931857342995e-05,-5.9684449092670434e-02,+9.9215834773707431e-04,-7.1856523845314976e-02,-3.5572774920061140e-03,+2.2260589605623812e-04,-3.9427367127197943e-03,-4.7028163872208494e-03,-6.1161650485366724e-02,+9.7959211703423912e-04,-6.2246449661917794e-02,-8.8266839809531504e-03,-1.9143442623144337e-03,-7.6234433606577293e-02,-1.8096091283639408e-03,+1.1801586088156569e-03,-1.4781821789800194e-03,+3.1398297840381515e-03,+1.6616456312189797e-03,-7.1635874364571928e-04,+2.5100248920644883e-03,-2.2848078339443834e-03,-9.7083572080443163e-04,+1.3870492761470832e-04,-5.5755975011998929e-02,+1.2673207184824241e-03,-5.8920728079351857e-02,-2.4012254290552864e-03,+2.3688146692632185e-03,-6.2807030341918216e-02,-4.5038767512170178e-03,+5.6887590186935960e-03,+6.3803571001887095e-03};
 
-    int iterations =  coefVectors.size();
+    int iterations =  3;
     int iteration;
     for (iteration = 0; iteration < iterations; ++iteration) {
         // Init problem
@@ -157,7 +66,7 @@ int main() {
         sdpaProblem.inputBlockSize(1, BLOCK_SIZE);
         sdpaProblem.inputBlockType(1, SDPA::SDP);
         sdpaProblem.initializeUpperTriangleSpace();
-        bool initialPointEnabled = true;
+        bool initialPointEnabled = false;
 
         // set initial point if not first iteration
         if (initialPointEnabled && iteration > 0) {
@@ -165,17 +74,11 @@ int main() {
             setInitialPoint(sdpaProblem, DIMENSION, BLOCK_SIZE, yMat, xMat, xVec);
         }
 
-        // choose whether the current SDPA problem should set its result as the initial point for the following problems
-        bool copyToInitialPoint = false;
-        if (initialPointEnabled && iteration % 3 == 0) {
-            copyToInitialPoint = true;
-        }
-
         std::cout << "Iteration number: " << iteration + 1 << std::endl;
 
         // run SPDA and measure time
         auto start = chrono::steady_clock::now();
-        runProblem(sdpaProblem, 0, yMat, xMat, xVec, copyToInitialPoint, coefVectors[iteration]);
+        runProblem(sdpaProblem, coefVectors[0]);
         auto end = chrono::steady_clock::now();
         sum += chrono::duration_cast<chrono::nanoseconds>(end - start).count();
     }
@@ -197,15 +100,7 @@ int main() {
  * coef - coefficients vector
  */
 void runProblem(SDPA &sdpaProblem,
-                double offsetFactor,
-                double *yMat,
-                double *xMat,
-                double *xVec,
-                bool copyToInitialPoint,
                 std::vector<double> &coef) {
-
-    /* uncomment to display info on each SDPA run */
-    //sdpaProblem.setDisplay(stdout);
 
     putCoefficients(sdpaProblem, coef);
     buildMat(sdpaProblem);
@@ -213,13 +108,6 @@ void runProblem(SDPA &sdpaProblem,
     sdpaProblem.initializeUpperTriangle();
     sdpaProblem.initializeSolve();
     sdpaProblem.solve();
-
-    int matSize = BLOCK_SIZE * BLOCK_SIZE;
-    if (copyToInitialPoint) {
-        std::memcpy(yMat, sdpaProblem.getResultYMat(1), matSize * sizeof(double));
-        std::memcpy(xMat, sdpaProblem.getResultXMat(1), matSize * sizeof(double));
-        std::memcpy(xVec, sdpaProblem.getResultXVec(), DIMENSION * sizeof(double));
-    }
 
     fprintf(stdout, "primal value: %3.10e\n", sdpaProblem.getPrimalObj());
     fprintf(stdout, "dual value: %3.10e\n", sdpaProblem.getDualObj());
@@ -230,28 +118,17 @@ void runProblem(SDPA &sdpaProblem,
 }
 
 
-void setInitialPoint(SDPA &problem, int dim, int blockSize, double *yMat, double *xMat, double *xVec) {
+void setInitialPoint(SDPA &problem, int dim, int blockSize, double yMat[BLOCK_SIZE][BLOCK_SIZE], double xMat[BLOCK_SIZE][BLOCK_SIZE], double xVec[BLOCK_SIZE]) {
     for (int i = 0; i < blockSize; ++i) {
-        for (int j = i; j < blockSize; ++j) {
-            if (yMat[i + blockSize * j] != 0) {
-                //std::cout << "(" << i << ", " << j << ") = " << yMat[i + blockSize * j] << std::endl;
-                problem.inputInitYMat(1, i + 1, j + 1, yMat[i + blockSize * j]);
-            }
+        for (int j = 0; j < blockSize; ++j) {
+            problem.inputInitYMat(1, i + 1, j + 1, yMat[i][j]);
+            problem.inputInitXMat(1, i + 1, j + 1, xMat[i][j]);
         }
     }
-
-    for (int i = 0; i < blockSize; ++i) {
-        for (int j = i; j < blockSize; ++j) {
-            if (xMat[i + blockSize * j] != 0) {
-                //std::cout << "(" << i << ", " << j << ") = " << xMat[i + blockSize * j] << std::endl;
-                problem.inputInitXMat(1, i + 1, j + 1, xMat[i + blockSize * j]);
-            }
-        }
-    }
-
     for (int i = 0; i < dim; ++i) {
         problem.inputInitXVec(i + 1, xVec[i]);
     }
+
 }
 
 void putCoefficients(SDPA &problem, const std::vector<double> &coef) {
@@ -261,72 +138,70 @@ void putCoefficients(SDPA &problem, const std::vector<double> &coef) {
 }
 
 void buildMat(SDPA &problem) {
-    problem.inputElement(0, 1, 1, 1, 1);
-    problem.inputElement(1, 1, 1, 1, -1);
-    problem.inputElement(1, 1, 11, 11, -1);
-    problem.inputElement(2, 1, 11, 10, -1);
-    problem.inputElement(3, 1, 1, 1, -2);
-    problem.inputElement(3, 1, 10, 10, -1);
-    problem.inputElement(3, 1, 11, 9, -1);
-    problem.inputElement(4, 1, 10, 9, -1);
-    problem.inputElement(5, 1, 1, 1, -1);
-    problem.inputElement(5, 1, 9, 9, -1);
-    problem.inputElement(6, 1, 11, 8, -1);
-    problem.inputElement(7, 1, 10, 8, -1);
-    problem.inputElement(7, 1, 11, 7, -1);
-    problem.inputElement(8, 1, 9, 8, -1);
-    problem.inputElement(8, 1, 10, 7, -1);
-    problem.inputElement(9, 1, 9, 7, -1);
-    problem.inputElement(10, 1, 1, 1, -2);
-    problem.inputElement(10, 1, 8, 8, -1);
-    problem.inputElement(10, 1, 11, 6, -1);
-    problem.inputElement(11, 1, 8, 7, -1);
-    problem.inputElement(11, 1, 10, 6, -1);
-    problem.inputElement(12, 1, 1, 1, -2);
-    problem.inputElement(12, 1, 7, 7, -1);
-    problem.inputElement(12, 1, 9, 6, -1);
-    problem.inputElement(13, 1, 8, 6, -1);
-    problem.inputElement(14, 1, 7, 6, -1);
-    problem.inputElement(15, 1, 1, 1, -1);
-    problem.inputElement(15, 1, 6, 6, -1);
-    problem.inputElement(16, 1, 11, 5, -1);
-    problem.inputElement(17, 1, 10, 5, -1);
-    problem.inputElement(17, 1, 11, 4, -1);
-    problem.inputElement(18, 1, 9, 5, -1);
-    problem.inputElement(18, 1, 10, 4, -1);
-    problem.inputElement(19, 1, 9, 4, -1);
-    problem.inputElement(20, 1, 8, 5, -1);
-    problem.inputElement(20, 1, 11, 3, -1);
-    problem.inputElement(21, 1, 7, 5, -1);
-    problem.inputElement(21, 1, 8, 4, -1);
-    problem.inputElement(21, 1, 10, 3, -1);
-    problem.inputElement(22, 1, 7, 4, -1);
-    problem.inputElement(22, 1, 9, 3, -1);
-    problem.inputElement(23, 1, 6, 5, -1);
-    problem.inputElement(23, 1, 8, 3, -1);
-    problem.inputElement(24, 1, 6, 4, -1);
-    problem.inputElement(24, 1, 7, 3, -1);
-    problem.inputElement(25, 1, 6, 3, -1);
-    problem.inputElement(26, 1, 1, 1, -2);
-    problem.inputElement(26, 1, 5, 5, -1);
-    problem.inputElement(26, 1, 11, 2, -1);
-    problem.inputElement(27, 1, 5, 4, -1);
-    problem.inputElement(27, 1, 10, 2, -1);
-    problem.inputElement(28, 1, 1, 1, -2);
-    problem.inputElement(28, 1, 4, 4, -1);
-    problem.inputElement(28, 1, 9, 2, -1);
-    problem.inputElement(29, 1, 5, 3, -1);
-    problem.inputElement(29, 1, 8, 2, -1);
-    problem.inputElement(30, 1, 4, 3, -1);
-    problem.inputElement(30, 1, 7, 2, -1);
-    problem.inputElement(31, 1, 1, 1, -2);
-    problem.inputElement(31, 1, 3, 3, -1);
-    problem.inputElement(31, 1, 6, 2, -1);
-    problem.inputElement(32, 1, 5, 2, -1);
-    problem.inputElement(33, 1, 4, 2, -1);
-    problem.inputElement(34, 1, 3, 2, -1);
-    problem.inputElement(35, 1, 1, 1, -1);
-    problem.inputElement(35, 1, 2, 2, -1);
+    problem.inputElement(0,1,1,1,-1  );
+    problem.inputElement(1,1,10,10,-1);
+    problem.inputElement(1,1,1,1,1   );
+    problem.inputElement(2,1,10,9,-1 );
+    problem.inputElement(3,1,10,8,-1 );
+    problem.inputElement(3,1,9,9,-1  );
+    problem.inputElement(3,1,1,1,2   );
+    problem.inputElement(4,1,9,8,-1  );
+    problem.inputElement(5,1,8,8,-1  );
+    problem.inputElement(5,1,1,1,1   );
+    problem.inputElement(6,1,10,7,-1 );
+    problem.inputElement(7,1,10,6,-1 );
+    problem.inputElement(7,1,9,7,-1  );
+    problem.inputElement(8,1,9,6,-1  );
+    problem.inputElement(8,1,8,7,-1  );
+    problem.inputElement(9,1,8,6,-1  );
+    problem.inputElement(10,1,10,5,-1);
+    problem.inputElement(10,1,7,7,-1 );
+    problem.inputElement(10,1,1,1,2  );
+    problem.inputElement(11,1,9,5,-1 );
+    problem.inputElement(11,1,7,6,-1 );
+    problem.inputElement(12,1,8,5,-1 );
+    problem.inputElement(12,1,6,6,-1 );
+    problem.inputElement(12,1,1,1,2  );
+    problem.inputElement(13,1,7,5,-1 );
+    problem.inputElement(14,1,6,5,-1 );
+    problem.inputElement(15,1,5,5,-1 );
+    problem.inputElement(15,1,1,1,1  );
+    problem.inputElement(16,1,10,4,-1);
+    problem.inputElement(17,1,10,3,-1);
+    problem.inputElement(17,1,9,4,-1 );
+    problem.inputElement(18,1,8,4,-1 );
+    problem.inputElement(18,1,9,3,-1 );
+    problem.inputElement(19,1,8,3,-1 );
+    problem.inputElement(20,1,10,2,-1);
+    problem.inputElement(20,1,7,4,-1 );
+    problem.inputElement(21,1,6,4,-1 );
+    problem.inputElement(21,1,7,3,-1 );
+    problem.inputElement(21,1,9,2,-1 );
+    problem.inputElement(22,1,6,3,-1 );
+    problem.inputElement(22,1,8,2,-1 );
+    problem.inputElement(23,1,5,4,-1 );
+    problem.inputElement(23,1,7,2,-1 );
+    problem.inputElement(24,1,5,3,-1 );
+    problem.inputElement(24,1,6,2,-1 );
+    problem.inputElement(25,1,5,2,-1 );
+    problem.inputElement(26,1,10,1,-1);
+    problem.inputElement(26,1,4,4,-1);
+    problem.inputElement(26,1,1,1,2);
+    problem.inputElement(27,1,4,3,-1);
+    problem.inputElement(27,1,9,1,-1);
+    problem.inputElement(28,1,3,3,-1);
+    problem.inputElement(28,1,8,1,-1);
+    problem.inputElement(28,1,1,1,2 );
+    problem.inputElement(29,1,4,2,-1);
+    problem.inputElement(29,1,7,1,-1);
+    problem.inputElement(30,1,3,2,-1);
+    problem.inputElement(30,1,6,1,-1);
+    problem.inputElement(31,1,2,2,-1);
+    problem.inputElement(31,1,5,1,-1);
+    problem.inputElement(31,1,1,1,2 );
+    problem.inputElement(32,1,4,1,-1);
+    problem.inputElement(33,1,3,1,-1);
+    problem.inputElement(34,1,2,1,-1);
 }
 
 void printVector(const double *coefficients, int dimension) {
